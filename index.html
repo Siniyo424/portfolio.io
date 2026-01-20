@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Siniyo's Portfolio</title>
+    <title>Haruto Fukudome Portfolio</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     
     <style>
+        /* --- テーマ設定 --- */
         :root {
             --bg-color: #ffffff; --text-color: #111111;
             --marker-bar: #111111; --marker-text: #ffffff;
@@ -15,6 +16,8 @@
             --bg-color: #000000; --text-color: #f5f5f7;
             --marker-bar: #f5f5f7; --marker-text: #000000;
         }
+
+        /* --- 基本スタイル --- */
         body, html {
             margin: 0; padding: 0; width: 100%; 
             font-family: 'Helvetica Neue', Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif;
@@ -33,6 +36,8 @@
         .text-box { 
             pointer-events: auto; text-align: center; max-width: 900px; padding: 20px;
         }
+
+        /* マーカー */
         .marker {
             display: inline; position: relative; color: var(--text-color);
             background-image: linear-gradient(to right, var(--marker-bar) 0%, var(--marker-bar) 100%);
@@ -42,15 +47,19 @@
         }
         .marker.active { background-size: 100% 100%; color: var(--marker-text); }
         .delay-1 { transition-delay: 0.1s; } .delay-2 { transition-delay: 0.2s; }
+
         h1 { font-size: 3.5rem; font-weight: 800; margin-bottom: 20px; letter-spacing: -0.02em; line-height: 1.3; }
-        p { font-size: 1.1rem; font-weight: 500; line-height: 2.2; white-space: pre-line; }
+        p { font-size: 1.1rem; font-weight: 500; line-height: 2.2; white-space: pre-line; /* 改行コードを反映 */ }
+
         #works-section { height: 400vh; justify-content: flex-start; padding-top: 10vh; }
         .sticky-wrapper { position: sticky; top: 10vh; width: 100%; display: flex; justify-content: center; }
+
         .scroll-icon { margin-top: 60px; font-size: 2rem; opacity: 0.3; animation: bounce 2s infinite; }
         @keyframes bounce { 0%, 100% {transform: translateY(0);} 50% {transform: translateY(10px);} }
     </style>
 </head>
 <body>
+
     <div id="webgl-container"></div>
 
     <section class="content-section" id="sec-intro">
@@ -75,174 +84,347 @@
     </section>
 
     <script>
-        let worksData = [], introGroup, aboutGroup, carousel;
+        // グローバル変数
+        let worksData = []; 
+        let introGroup, aboutGroup, carousel;
         
+        // --- 0. JSONデータの読み込みと初期化 ---
         async function init() {
             try {
                 const response = await fetch('data.json');
                 if (!response.ok) throw new Error('Network response was not ok');
                 const data = await response.json();
+                
+                // データの反映: HTMLテキスト
                 applyTextData(data);
+                
+                // データの反映: 3Dオブジェクト
                 create3DObjects(data);
+                
             } catch (error) {
-                console.error(error);
-                document.getElementById('intro-content').innerHTML = `<h1>Loading Data...</h1><p>GitHub上で正しく表示されます。</p>`;
+                console.error('Error loading data.json:', error);
+                document.getElementById('intro-content').innerHTML = `
+                    <h1>Error Loading Data</h1>
+                    <p>ローカル環境で実行している場合、ブラウザのセキュリティ制限によりjsonが読み込めないことがあります。<br>
+                    GitHubにアップロードするか、ローカルサーバー(Live Server等)を使用してください。</p>`;
             }
         }
 
         function applyTextData(data) {
-            document.getElementById('intro-content').innerHTML = `
+            // Introセクション
+            const introHTML = `
                 <h1><span class="marker">${data.profile.name}</span></h1>
-                <p><span class="marker delay-1">${data.profile.subtitle}</span><br><span class="marker delay-2">${data.profile.catchphrase}</span></p>
-                <div class="scroll-icon">↓</div>`;
-            document.getElementById('about-content').innerHTML = `
+                <p>
+                    <span class="marker delay-1">${data.profile.subtitle}</span><br>
+                    <span class="marker delay-2">${data.profile.catchphrase}</span>
+                </p>
+                <div class="scroll-icon">↓</div>
+            `;
+            document.getElementById('intro-content').innerHTML = introHTML;
+
+            // Aboutセクション
+            const aboutHTML = `
                 <h1><span class="marker">${data.about.title}</span></h1>
-                <p><span class="marker delay-1">${data.about.text}</span></p>`;
+                <p><span class="marker delay-1">${data.about.text}</span></p>
+            `;
+            document.getElementById('about-content').innerHTML = aboutHTML;
+
+            // Worksデータ保持
             worksData = data.works;
-            setTimeout(() => { document.querySelectorAll('.marker').forEach(el => new IntersectionObserver((es)=>es.forEach(e=>{e.target.classList.toggle('active',e.isIntersecting)}),{threshold:0.5}).observe(el)); }, 100);
+
+            // マーカー監視を再開（要素が書き換わったため）
+            observeMarkers();
         }
 
+
+        // --- 1. マーカー制御 ---
+        function observeMarkers() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) entry.target.classList.add('active');
+                    else entry.target.classList.remove('active');
+                });
+            }, { threshold: 0.5, rootMargin: "-10% 0px -10% 0px" });
+            
+            // 少し待ってから監視開始（DOM描画待ち）
+            setTimeout(() => {
+                document.querySelectorAll('.marker').forEach(el => observer.observe(el));
+            }, 100);
+        }
+
+
+        // --- 2. Three.js セットアップ ---
         const container = document.getElementById('webgl-container');
         const scene = new THREE.Scene();
-        scene.fog = new THREE.Fog(0xffffff, 10, 60);
+        const fogColor = new THREE.Color(0xffffff);
+        scene.fog = new THREE.Fog(fogColor, 10, 60);
+
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
         container.appendChild(renderer.domElement);
+
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
         camera.position.z = 14;
 
         function createTextTexture(text, color) {
-            const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
             canvas.width = 512; canvas.height = 128;
-            ctx.fillStyle = "rgba(0,0,0,0)"; ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.fillStyle = "rgba(0,0,0,0)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.font = 'bold 80px Arial'; ctx.fillStyle = color;
             ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             ctx.fillText(text, canvas.width/2, canvas.height/2);
             return new THREE.CanvasTexture(canvas);
         }
 
+        // --- 3. 3Dオブジェクト生成 ---
         function create3DObjects(data) {
+            // Group 1: Intro (黒ワイヤー & キーワード)
             introGroup = new THREE.Group(); scene.add(introGroup);
-            const matWire = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.2 });
+            const wIntro = data.keywords.intro;
+            const matWireBlack = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.2 });
             const geoBox = new THREE.BoxGeometry(1,1,1);
+            
             for(let i=0; i<60; i++){
                 if(Math.random()>0.5){
-                    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: createTextTexture(data.keywords.intro[Math.floor(Math.random()*data.keywords.intro.length)], "#000000"), transparent: true, opacity: 0.7 }));
+                    const map = createTextTexture(wIntro[Math.floor(Math.random()*wIntro.length)], "#000000");
+                    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: map, transparent: true, opacity: 0.7 }));
                     sp.position.set((Math.random()-0.5)*40, (Math.random()-0.5)*40, (Math.random()-0.5)*30);
-                    sp.scale.set(6,1.5,1); sp.userData = { speedY: Math.random()*0.01+0.005 }; introGroup.add(sp);
+                    sp.scale.set(6, 1.5, 1); sp.userData = { speedY: Math.random()*0.01 + 0.005 }; introGroup.add(sp);
                 } else {
-                    const line = new THREE.LineSegments(new THREE.EdgesGeometry(geoBox), matWire);
+                    const line = new THREE.LineSegments(new THREE.EdgesGeometry(geoBox), matWireBlack);
                     line.position.set((Math.random()-0.5)*50, (Math.random()-0.5)*50, (Math.random()-0.5)*30);
                     line.scale.setScalar(Math.random()*2); line.userData = { rot: Math.random()*0.01 }; introGroup.add(line);
                 }
             }
 
+            // Group 2: About (白データ)
             aboutGroup = new THREE.Group(); scene.add(aboutGroup); aboutGroup.visible = false;
+            const wAbout = data.keywords.about;
             for(let i=0; i<100; i++){
-                const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: createTextTexture(data.keywords.about[Math.floor(Math.random()*data.keywords.about.length)], "#ffffff"), transparent: true, opacity: 0.9 }));
+                const map = createTextTexture(wAbout[Math.floor(Math.random()*wAbout.length)], "#ffffff");
+                const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: map, transparent: true, opacity: 0.9 }));
                 sp.position.set((Math.random()-0.5)*80, (Math.random()-0.5)*40, (Math.random()-0.5)*20);
-                sp.scale.set(6,1.5,1); sp.userData = { speedX: -(Math.random()*0.1+0.05) }; aboutGroup.add(sp);
+                sp.scale.set(6, 1.5, 1); sp.userData = { speedX: -(Math.random()*0.1 + 0.05) }; aboutGroup.add(sp);
             }
 
+            // Group 3: Works (螺旋階段)
             carousel = new THREE.Group(); scene.add(carousel);
-            const radius = 9.0; const yStep = 4.0; const totalH = (worksData.length-1)*yStep;
             const loader = new THREE.TextureLoader();
-            
+            const radius = 9.0; 
+            const yStep = 4.0;
+            const totalHelixHeight = (worksData.length - 1) * yStep;
+
             worksData.forEach((work, i) => {
-                const angle = (i/worksData.length)*Math.PI*2;
+                const angle = (i / worksData.length) * Math.PI * 2;
+                
+                // 枠線
+                const border = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 2.6), new THREE.MeshBasicMaterial({ color: 0x000000 }));
+                
+                // カード本体
                 let mat;
-                if(work.image){ mat = new THREE.MeshBasicMaterial({ map: loader.load(work.image), color:0xffffff }); }
-                else {
-                    const c = document.createElement('canvas'); c.width=512; c.height=300;
-                    const x = c.getContext('2d'); x.fillStyle="#f8f8f8"; x.fillRect(0,0,512,300);
-                    x.fillStyle="#111"; x.font="bold 40px Arial"; x.textAlign="center"; x.textBaseline="middle";
-                    x.fillText(work.title, 256, 120);
-                    if(work.desc){ x.font="20px Arial"; x.fillStyle="#555"; x.fillText(work.desc.substring(0,30)+"...", 256, 180); }
-                    mat = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c) });
+                if (work.image && work.image !== "") {
+                    const tex = loader.load(work.image);
+                    mat = new THREE.MeshBasicMaterial({ map: tex, color: 0xffffff });
+                } else {
+                    // 画像がない場合はタイトル文字を描画
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 512; canvas.height = 300;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = "#f8f8f8"; ctx.fillRect(0,0,512,300);
+                    
+                    // タイトル
+                    ctx.fillStyle = "#111"; ctx.font = "bold 40px Arial"; 
+                    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                    ctx.fillText(work.title, 256, 120);
+                    
+                    // 説明文（簡易）
+                    if(work.desc) {
+                        ctx.font = "20px Arial"; ctx.fillStyle = "#555";
+                        // 長い説明はカットするか改行が必要だが、ここでは簡易的に1行
+                        ctx.fillText(work.desc.substring(0, 30) + "...", 256, 180);
+                    }
+                    
+                    const tex = new THREE.CanvasTexture(canvas);
+                    mat = new THREE.MeshBasicMaterial({ map: tex });
                 }
-                const card = new THREE.Mesh(new THREE.PlaneGeometry(4.0,2.4), mat); card.position.z = 0.05;
-                const g = new THREE.Group(); 
-                g.add(new THREE.Mesh(new THREE.PlaneGeometry(4.2,2.6), new THREE.MeshBasicMaterial({color:0x000000}))); 
-                g.add(card);
-                g.position.set(Math.cos(angle)*radius, i*yStep-(totalH/2), Math.sin(angle)*radius);
-                g.lookAt(0, g.position.y, 0); g.rotateY(Math.PI);
-                g.userData = { url: work.url, title: work.title };
+
+                const card = new THREE.Mesh(new THREE.PlaneGeometry(4.0, 2.4), mat);
+                card.position.z = 0.05;
+
+                const g = new THREE.Group();
+                g.add(border); g.add(card);
+                
+                g.position.x = Math.cos(angle) * radius;
+                g.position.z = Math.sin(angle) * radius;
+                g.position.y = i * yStep - (totalHelixHeight / 2);
+                
+                g.lookAt(0, g.position.y, 0); 
+                g.rotateY(Math.PI);
+
+                g.userData = { 
+                    url: work.url, 
+                    title: work.title
+                };
+                
                 carousel.add(g);
             });
-            carousel.position.y = -totalH*3; carousel.rotation.x = 0.1;
+
+            carousel.position.y = -totalHelixHeight * 3;
+            carousel.rotation.x = 0.1;
         }
 
-        const body = document.body; let isDarkMode = false; const targetFog = new THREE.Color(0xffffff);
-        const raycaster = new THREE.Raycaster(); const mouse = new THREE.Vector2();
 
-        function update() {
-            if(!carousel) return;
-            const center = window.innerHeight/2;
-            const aboutRect = document.getElementById('sec-about').getBoundingClientRect();
-            const worksRect = document.getElementById('works-section').getBoundingClientRect();
-            
-            const dark = (aboutRect.top <= center && worksRect.top > center);
-            if(dark !== isDarkMode){
-                isDarkMode = dark;
-                body.className = isDarkMode ? 'theme-dark' : '';
-                targetFog.setHex(isDarkMode ? 0x000000 : 0xffffff);
-                if(introGroup) introGroup.visible = !isDarkMode && (worksRect.top > center);
-                if(aboutGroup) aboutGroup.visible = isDarkMode;
+        // --- 4. スクロール制御 ---
+        const body = document.body;
+        let isDarkMode = false;
+        const targetFogColor = new THREE.Color(0xffffff);
+        const secAbout = document.getElementById('sec-about');
+        const secWorks = document.getElementById('works-section');
+
+        function lerp(start, end, factor) { return (1 - factor) * start + factor * end; }
+
+        function updateScroll() {
+            // ロード完了前はスキップ
+            if(!introGroup || !carousel) return;
+
+            const center = window.innerHeight / 2;
+            const aboutRect = secAbout.getBoundingClientRect();
+            const worksRect = secWorks.getBoundingClientRect();
+
+            let shouldBeDark = (aboutRect.top <= center && worksRect.top > center);
+            if (shouldBeDark !== isDarkMode) {
+                isDarkMode = shouldBeDark;
+                if (isDarkMode) {
+                    body.classList.add('theme-dark'); targetFogColor.setHex(0x000000);
+                    introGroup.visible = false; aboutGroup.visible = true;
+                } else {
+                    body.classList.remove('theme-dark'); targetFogColor.setHex(0xffffff);
+                    introGroup.visible = (worksRect.top > center);
+                    aboutGroup.visible = false;
+                }
             }
-            if(!isDarkMode && introGroup) introGroup.visible = (worksRect.top > center);
+            if (!isDarkMode) introGroup.visible = (worksRect.top > center);
 
-            const sY = window.scrollY; const wH = window.innerHeight; const wTop = worksRect.top + sY; const wHgt = document.getElementById('works-section').offsetHeight;
-            const start = wTop - wH*0.2; const end = wTop + wHgt - wH*0.8;
-            let ty = carousel.position.y, tr = carousel.rotation.y;
-            
-            if(sY > start && sY < end){
-                const p = (sY - start)/(end - start);
-                const idx = p * (worksData.length - 1);
-                const totalH = (worksData.length - 1)*4.0;
-                ty = -(idx * 4.0 - (totalH/2));
-                tr = -(idx / worksData.length) * Math.PI * 2;
-            } else if(sY <= start) { ty = -(worksData.length-1)*4.0*3; tr = 0; }
-            else { ty = (worksData.length-1)*4.0*3; }
+            // Works螺旋
+            const scrollY = window.scrollY;
+            const windowH = window.innerHeight;
+            const worksTop = secWorks.offsetTop;
+            const worksHeight = secWorks.offsetHeight;
 
-            carousel.position.y += (ty - carousel.position.y)*0.08;
-            carousel.rotation.y += (tr - carousel.rotation.y)*0.08;
-            scene.fog.color.lerp(targetFog, 0.05);
+            const startScroll = worksTop - windowH * 0.2; 
+            const endScroll = worksTop + worksHeight - windowH * 0.8;
+            const totalHelixHeight = (worksData.length - 1) * 4.0; // yStep=4.0
 
-            if(introGroup && introGroup.visible) introGroup.children.forEach(o => { if(o.isSprite){ o.position.y+=o.userData.speedY; if(o.position.y>20)o.position.y=-20; } else { o.rotation.x+=o.userData.rot; o.rotation.y+=o.userData.rot; } });
-            if(aboutGroup && aboutGroup.visible) aboutGroup.children.forEach(o => { o.position.x+=o.userData.speedX; if(o.position.x<-40)o.position.x=40; });
+            let targetY = carousel.position.y;
+            let targetRotY = carousel.rotation.y;
+
+            if (scrollY > startScroll && scrollY < endScroll) {
+                const progress = (scrollY - startScroll) / (endScroll - startScroll);
+                const rawIndex = progress * (worksData.length - 1);
+                const snappedIndex = rawIndex;
+                
+                targetY = -(snappedIndex * 4.0 - (totalHelixHeight / 2));
+                targetRotY = -(snappedIndex / worksData.length) * Math.PI * 2;
+            } else if (scrollY <= startScroll) {
+                targetY = -totalHelixHeight * 3; targetRotY = 0;
+            } else {
+                targetY = totalHelixHeight * 3;
+            }
+
+            carousel.position.y = lerp(carousel.position.y, targetY, 0.08);
+            carousel.rotation.y = lerp(carousel.rotation.y, targetRotY, 0.08);
+
+            scene.fog.color.lerp(targetFogColor, 0.05);
         }
 
+        // --- 5. クリック＆ホバー ---
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        
         window.addEventListener('mousemove', e => {
-            mouse.x=(e.clientX/window.innerWidth)*2-1; mouse.y=-(e.clientY/window.innerHeight)*2+1;
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            checkIntersection();
+        });
+
+        function checkIntersection() {
+            if(!carousel) return;
             raycaster.setFromCamera(mouse, camera);
-            if(carousel){
-                const hits = raycaster.intersectObjects(carousel.children, true);
-                carousel.children.forEach(g=>{ if(g.scale.x>1)g.scale.lerp(new THREE.Vector3(1,1,1),0.2); });
-                document.body.style.cursor = hits.length>0 ? 'pointer':'default';
-                if(hits.length>0 && hits[0].object.parent){
-                    hits[0].object.parent.scale.lerp(new THREE.Vector3(1.15,1.15,1.15),0.2);
+            const hits = raycaster.intersectObjects(carousel.children, true);
+            
+            carousel.children.forEach(group => {
+                if(group.scale.x > 1.0) group.scale.lerp(new THREE.Vector3(1,1,1), 0.2);
+                group.children[1].material.color.lerp(new THREE.Color(0xf2f2f2), 0.2);
+            });
+
+            if (hits.length > 0) {
+                const hitObj = hits[0].object;
+                const parentGroup = hitObj.parent;
+                if (parentGroup) {
+                    document.body.style.cursor = 'pointer';
+                    parentGroup.scale.lerp(new THREE.Vector3(1.2, 1.2, 1.2), 0.2);
+                    parentGroup.children[1].material.color.lerp(new THREE.Color(0xffffff), 0.3);
+                    return;
+                }
+            }
+            document.body.style.cursor = 'default';
+        }
+
+        window.addEventListener('click', e => {
+            if(!carousel) return;
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            const hits = raycaster.intersectObjects(carousel.children, true);
+
+            if (hits.length > 0) {
+                const parentGroup = hits[0].object.parent;
+                if (parentGroup) {
+                    const data = parentGroup.userData;
+                    parentGroup.children[1].material.color.set(0xffff00);
+                    setTimeout(() => {
+                        if (data.url && data.url !== "#" && data.url !== "") {
+                            window.open(data.url, '_blank');
+                        } else {
+                            alert(`【Project: ${data.title}】\n詳細ページは準備中です。\n(URL未設定)`);
+                        }
+                    }, 100);
                 }
             }
         });
 
-        window.addEventListener('click', () => {
-            if(carousel){
-                const hits = raycaster.intersectObjects(carousel.children, true);
-                if(hits.length>0){
-                    const d = hits[0].object.parent.userData;
-                    hits[0].object.parent.children[1].material.color.set(0xffff00);
-                    setTimeout(()=>{
-                        if(d.url && d.url!=="#" && d.url!=="") window.open(d.url, '_blank');
-                        else alert(`【${d.title}】\n(URL未設定)`);
-                    },100);
-                }
-            }
-        });
+        // --- 6. アニメーション ---
+        function animate() {
+            requestAnimationFrame(animate);
+            updateScroll();
+            checkIntersection(); 
 
-        function animate(){ requestAnimationFrame(animate); update(); renderer.render(scene, camera); }
-        init(); animate();
-        window.addEventListener('resize', () => { camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+            if(introGroup && introGroup.visible){
+                introGroup.children.forEach(o=>{
+                    if(o.isSprite){ o.position.y += o.userData.speedY; if(o.position.y>20) o.position.y=-20; }
+                    else { o.rotation.x += o.userData.rot; o.rotation.y += o.userData.rot; }
+                });
+            }
+            if(aboutGroup && aboutGroup.visible){
+                aboutGroup.children.forEach(o=>{
+                    o.position.x += o.userData.speedX; if(o.position.x < -40) o.position.x = 40;
+                });
+            }
+            
+            renderer.render(scene, camera);
+        }
+        
+        // スタート
+        init();
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth/window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
     </script>
 </body>
 </html>
