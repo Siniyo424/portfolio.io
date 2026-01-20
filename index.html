@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Immersive Portfolio JSON Edition</title>
+    <title>Immersive Portfolio JSON Loader</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,7 +14,6 @@
         :root {
             --bg-color: #f0f0f0; --text-color: #111;
             --marker-bar: #111; --marker-text: #fff;
-            /* フォントスタック: 日本語対応 */
             --font-body: 'Inter', 'Noto Sans JP', sans-serif; 
             --font-display: 'Montserrat', 'Noto Sans JP', sans-serif;
         }
@@ -39,15 +38,12 @@
         .marker.active { background-size: 100% 100%; color: var(--marker-text); }
         .delay-1 { transition-delay: 0.1s; } .delay-2 { transition-delay: 0.2s; }
         
-        /* タイトル・本文スタイル（日本語対応） */
         h1 { font-family: var(--font-display); font-size: 3.5rem; font-weight: 900; margin-bottom: 30px; letter-spacing: -0.02em; line-height: 1.4; white-space: pre-wrap; }
         p { font-size: 1.1rem; font-weight: 400; line-height: 2; white-space: pre-wrap; }
         
         /* スクロール領域 */
         #works-section { height: 800vh; justify-content: flex-start; }
         .sticky-wrapper { position: sticky; top: 10vh; width: 100%; display: flex; justify-content: center; pointer-events: none; }
-        
-        /* セクション高さ */
         #sec-transition { height: 100vh; } 
         #sec-end { height: 100vh; }
 
@@ -85,9 +81,9 @@
         .modal-info { padding: 50px; display: flex; flex-direction: column; overflow-y: auto; }
         .modal-header { border-bottom: 1px solid #eee; padding-bottom: 20px; margin-bottom: 20px; }
         .modal-title { font-family: var(--font-display); font-size: 2rem; font-weight: 900; margin: 0; letter-spacing: -0.01em; line-height: 1.4; }
+        .modal-meta { margin-top: 10px; display: flex; gap: 20px; font-size: 0.9rem; color: #666; font-weight: 600; text-transform: uppercase; }
         .modal-desc { font-size: 1rem; line-height: 2; color: #444; white-space: pre-wrap; margin-bottom: 30px; }
         
-        /* リンクボタン */
         .modal-link-btn {
             display: inline-block; padding: 15px 30px; background: #000; color: #fff;
             text-decoration: none; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em;
@@ -123,6 +119,10 @@
             <div class="modal-info">
                 <div class="modal-header">
                     <h2 class="modal-title" id="m-title">Title</h2>
+                    <div class="modal-meta">
+                        <span id="m-date">--</span>
+                        <span id="m-team">--</span>
+                    </div>
                 </div>
                 <div class="modal-desc" id="m-desc">Desc</div>
                 <a href="#" target="_blank" class="modal-link-btn" id="m-link">Visit Site</a>
@@ -132,377 +132,306 @@
     
     <section class="content-section" id="sec-intro">
         <div class="text-box">
-            <h1 id="intro-h1"><span class="marker">Loading...</span></h1>
-            <p id="intro-p"><span class="marker delay-1">...</span></p>
+            <h1 id="intro-h1"></h1>
+            <p id="intro-p"></p>
         </div>
     </section>
     
     <section class="content-section" id="sec-about">
         <div class="text-box">
-            <h1 id="about-h1"><span class="marker">Loading...</span></h1>
-            <p id="about-p"><span class="marker delay-1">...</span></p>
+            <h1 id="about-h1"></h1>
+            <p id="about-p"></p>
         </div>
     </section>
     
     <section class="content-section" id="sec-transition"></section>
-
     <section class="content-section" id="works-section"></section>
-
     <section class="content-section" id="sec-end"></section>
 
     <script>
-        // --- ★ JSON DATA CONFIGURATION ★ ---
-        const portfolioData = {
-            "profile": {
-                "name": "福留 陽仁",
-                "subtitle": "Born in 2005 / Male",
-                "catchphrase": "いつもギリギリで\n生きていたい。"
-            },
-            "about": {
-                "title": "Co-Creation.",
-                "text": "自分だけで物事は進まないからこそ、人と何かを成し遂げたい。\n\n今までブログ運営、部活動の部長、個人の制作物...\n色々なことにチャレンジしてきましたが、\nどれも誰かと手を取り合って作った\n一つの結晶だと感じています。"
-            },
-            "keywords": {
-                "intro": ["Challenge", "2005", "Teamwork", "Leader", "Create", "Web"],
-                "about": ["Tekunotes", "Esports", "Gadget", "Connect", "Crystal", "Future"]
-            },
-            "works": [
-                {
-                    "title": "ガジェットブログ「Tekunotes」",
-                    "url": "https://tekunotes.com",
-                    "image": "", 
-                    "desc": "学生を中心に動くウェブメディア。企業提供記事も執筆。"
-                },
-                {
-                    "title": "Esports Club Founder",
-                    "url": "#",
-                    "image": "",
-                    "desc": "部長としてチームを牽引。0から組織を作り上げる経験。"
-                },
-                {
-                    "title": "Frontier Project",
-                    "url": "#",
-                    "image": "",
-                    "desc": "音楽フェス企画・運営。新しい文化の創造。"
-                },
-                {
-                    "title": "Graphic Design",
-                    "url": "#",
-                    "image": "",
-                    "desc": "個人制作物アーカイブ。デザインと実装の実験場。"
-                },
-                {
-                    "title": "Cafe Log",
-                    "url": "#",
-                    "image": "",
-                    "desc": "趣味のカフェ巡り記録。"
-                }
-            ]
-        };
+        // --- ★ Fetch & Initialization ★ ---
+        
+        // JSON読み込み処理
+        fetch('./data.json')
+            .then(response => {
+                if (!response.ok) throw new Error("JSON読み込みエラー: Live Serverを使用してください");
+                return response.json();
+            })
+            .then(data => {
+                initPortfolio(data);
+            })
+            .catch(error => {
+                console.error(error);
+                alert("【エラー】data.jsonの読み込みに失敗しました。\nVS Codeの『Live Server』などで開いていますか？\n(ローカルファイルの直接ダブルクリックでは動作しません)");
+            });
 
-        // --- 1. Init Text Content ---
-        document.addEventListener('DOMContentLoaded', () => {
-            // Intro
+        function initPortfolio(portfolioData) {
+            
+            // 1. HTMLテキストの流し込み
             const introH1 = document.getElementById('intro-h1');
             const introP = document.getElementById('intro-p');
             introH1.innerHTML = `<span class="marker">${portfolioData.profile.catchphrase.replace(/\n/g, '<br>')}</span>`;
             introP.innerHTML = `<span class="marker delay-1">${portfolioData.profile.subtitle}</span><br><span class="marker delay-2">${portfolioData.profile.name}</span>`;
 
-            // About
             const aboutH1 = document.getElementById('about-h1');
             const aboutP = document.getElementById('about-p');
             aboutH1.innerHTML = `<span class="marker">${portfolioData.about.title}</span>`;
             aboutP.innerHTML = `<span class="marker delay-1">${portfolioData.about.text}</span>`;
 
-            // Re-trigger observer for new content
+            // マーカーアニメーション開始
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => { entry.target.classList.toggle('active', entry.isIntersecting); });
+            }, { threshold: 0.5, rootMargin: "-10% 0px -10% 0px" });
             document.querySelectorAll('.marker').forEach(el => observer.observe(el));
-        });
 
-        // Marker Observer
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => { entry.target.classList.toggle('active', entry.isIntersecting); });
-        }, { threshold: 0.5, rootMargin: "-10% 0px -10% 0px" });
-
-        // --- Three.js Setup ---
-        const container = document.getElementById('webgl-container');
-        const scene = new THREE.Scene();
-        const fogColor = new THREE.Color(0xf0f0f0);
-        scene.fog = new THREE.Fog(fogColor, 20, 150);
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        container.appendChild(renderer.domElement);
-
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 300);
-        camera.position.z = 30; 
-
-        // --- Texture Helper (Supports Japanese) ---
-        function createHighQualityTextTexture(text, color, fontSize = 200) {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            const width = 2048; const height = 512; 
-            canvas.width = width; canvas.height = height;
-            
-            // Noto Sans JP for Japanese support
-            ctx.font = `900 ${fontSize}px 'Montserrat', 'Noto Sans JP', sans-serif`;
-            ctx.fillStyle = color;
-            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            
-            ctx.fillText(text, width/2, height/2);
-            
-            const texture = new THREE.CanvasTexture(canvas);
-            texture.needsUpdate = true;
-            texture.minFilter = THREE.LinearMipmapLinearFilter;
-            texture.magFilter = THREE.LinearFilter;
-            return texture;
+            // 2. Three.jsの開始
+            startThreeJS(portfolioData);
         }
 
-        // 1. Intro Objects (Keywords)
-        const introGroup = new THREE.Group(); scene.add(introGroup);
-        const wIntro = portfolioData.keywords.intro;
-        for(let i=0; i<40; i++){
-            const text = wIntro[i % wIntro.length];
-            const map = createHighQualityTextTexture(text, "#111", 100);
-            const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: map, transparent: true, opacity: 0.4 }));
-            sp.position.set((Math.random()-0.5)*50, (Math.random()-0.5)*40, (Math.random()-0.5)*20);
-            sp.scale.set(10, 2.5, 1); introGroup.add(sp);
-        }
 
-        // 2. About Objects (Keywords)
-        const aboutGroup = new THREE.Group(); scene.add(aboutGroup); aboutGroup.visible = false;
-        const wAbout = portfolioData.keywords.about;
-        for(let i=0; i<80; i++){
-            const text = wAbout[i % wAbout.length];
-            const map = createHighQualityTextTexture(text, "#fff", 100);
-            const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: map, transparent: true, opacity: 0.8 }));
-            sp.position.set((Math.random()-0.5)*80, (Math.random()-0.5)*40, (Math.random()-0.5)*20);
-            sp.scale.set(8, 2, 1); sp.userData = { speed: -(Math.random()*0.1 + 0.05) };
-            aboutGroup.add(sp);
-        }
+        // --- Three.js Logic ---
+        function startThreeJS(data) {
+            const container = document.getElementById('webgl-container');
+            const scene = new THREE.Scene();
+            const fogColor = new THREE.Color(0xf0f0f0);
+            scene.fog = new THREE.Fog(fogColor, 20, 150);
 
-        // 3. Works Objects (From JSON)
-        const worksGroup = new THREE.Group(); scene.add(worksGroup); worksGroup.visible = false;
-        const totalCards = 40;  
-        const spreadX = 70; const spreadY = 50; const depthSpacing = 18;
-        const cards = [];
-        const loader = new THREE.TextureLoader();
-        const cardGeometry = new THREE.PlaneGeometry(14.0, 8.4);
-        const borderGeometry = new THREE.PlaneGeometry(14.3, 8.7);
-        const materialCache = {};
-
-        for(let i=0; i < totalCards; i++) {
-            const data = portfolioData.works[i % portfolioData.works.length];
-            let mat;
-            if(data.image && data.image !== "") {
-                if(!materialCache[data.image]) {
-                    const tex = loader.load(data.image);
-                    tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-                    materialCache[data.image] = new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide });
-                }
-                mat = materialCache[data.image];
-            } else {
-                if(!materialCache['default']) materialCache['default'] = new THREE.MeshBasicMaterial({ color: 0xeeeeee, side: THREE.DoubleSide });
-                mat = materialCache['default'];
-            }
-            const mesh = new THREE.Mesh(cardGeometry, mat);
-            const border = new THREE.Mesh(borderGeometry, new THREE.MeshBasicMaterial({ color: 0x000, side: THREE.DoubleSide }));
-            border.position.z = -0.1; 
-            const group = new THREE.Group();
-            group.add(mesh); group.add(border);
-            // Config
-            group.userData = { data: data, initialZ: -i * depthSpacing - Math.random() * 10 };
-            group.position.set((Math.random() - 0.5) * spreadX, (Math.random() - 0.5) * spreadY, group.userData.initialZ);
-            group.rotation.z = (Math.random() - 0.5) * 0.15;
-            group.rotation.y = (Math.random() - 0.5) * 0.2;
-            worksGroup.add(group);
-            cards.push(group);
-        }
-        const maxWorkDepth = totalCards * depthSpacing + 50;
-
-        // --- Logic ---
-        const body = document.body;
-        let isDarkMode = false;
-        const targetFogColor = new THREE.Color(0xf0f0f0);
-        let targetCameraZ = camera.position.z;
-        let hoveredObject = null;
-        const raycaster = new THREE.Raycaster();
-        const mouse = new THREE.Vector2(9999, 9999);
-        
-        // HTML Elements
-        const label = document.getElementById('section-label');
-        const titleWorks = document.getElementById('title-works');
-        const titleEnd = document.getElementById('title-end');
-
-        function animate() {
-            requestAnimationFrame(animate);
-
-            const sY = window.scrollY;
-            const winH = window.innerHeight;
-            const aboutTop = document.getElementById('sec-about').offsetTop;
-            const transTop = document.getElementById('sec-transition').offsetTop;
-            const worksTop = document.getElementById('works-section').offsetTop;
-            const worksH = document.getElementById('works-section').offsetHeight;
-            const endTop = document.getElementById('sec-end').offsetTop;
-
-            // --- シーン制御 ---
-            
-            // 1. エンドエリア (To Be Continued - 固定表示)
-            if (sY + winH * 0.9 > endTop) { 
-                 if(!isDarkMode) { isDarkMode = true; body.classList.add('theme-dark'); targetFogColor.setHex(0x000000); }
-                 label.classList.remove('visible');
-                 introGroup.visible = false; aboutGroup.visible = false; worksGroup.visible = true;
-                 
-                 // タイトル切り替え
-                 titleWorks.style.display = 'none';
-                 titleEnd.style.display = 'block';
-
-                 // フェードイン (スクロール進捗に合わせて)
-                 const endProgress = Math.min(1.0, Math.max(0, (sY - endTop + winH*0.5) / winH));
-                 titleEnd.style.opacity = endProgress; // フェードイン
-                 titleEnd.style.transform = `scale(1)`; // 固定サイズ
-
-                 // カメラは奥へ退避
-                 targetCameraZ = 30 - maxWorkDepth - 100;
-
-            // 2. Worksエリア
-            } else if (sY + winH * 0.5 > worksTop) {
-                if(!isDarkMode) { isDarkMode = true; body.classList.add('theme-dark'); targetFogColor.setHex(0x080808); }
-                introGroup.visible = false; aboutGroup.visible = false; worksGroup.visible = true; 
-                
-                titleWorks.style.display = 'block';
-                titleEnd.style.display = 'none';
-
-                const worksScrollProgress = (sY - worksTop) / (worksH - winH);
-                targetCameraZ = 30 - (worksScrollProgress * maxWorkDepth);
-
-                // ★Transition: 飛び出し演出 (HTML Scale)
-                if (worksScrollProgress < 0.2) {
-                    label.classList.remove('visible');
-                    
-                    // 0.0 -> 0.2 の間で演出
-                    const p = worksScrollProgress / 0.2; 
-                    
-                    // 奥(scale 0.5) -> 手前(scale 1.5) -> 消える
-                    // opacity: 最初 0 -> 途中 1 -> 最後 0
-                    let op = 0;
-                    let sc = 0.5;
-
-                    if(p < 0.5) { // 前半: 現れる
-                        op = p * 2; 
-                        sc = 0.5 + p; 
-                    } else { // 後半: 飛び出して消える
-                        op = 1.0 - (p - 0.5) * 2;
-                        sc = 1.0 + (p - 0.5) * 2; // ぐっと大きく
-                    }
-                    
-                    titleWorks.style.opacity = op;
-                    titleWorks.style.transform = `scale(${sc})`;
-
-                } else {
-                    // 通常表示時はラベル固定、タイトル非表示
-                    label.classList.add('visible');
-                    titleWorks.style.opacity = 0;
-                }
-            
-            // 3. Transitionエリア (静寂・フェードアウト)
-            } else if (sY + winH * 0.5 > transTop) {
-                if(!isDarkMode) { isDarkMode = true; body.classList.add('theme-dark'); targetFogColor.setHex(0x080808); }
-                label.classList.remove('visible');
-                titleWorks.style.opacity = 0; titleEnd.style.opacity = 0; // タイトル消す
-
-                introGroup.visible = false; aboutGroup.visible = true; worksGroup.visible = false;
-                
-                const transProgress = (sY + winH*0.5 - transTop) / winH;
-                const opacity = Math.max(0, 1.0 - transProgress * 1.5);
-                aboutGroup.children.forEach(o => { o.material.opacity = opacity * 0.8; o.position.x += o.userData.speed; if(o.position.x < -40) o.position.x = 40; });
-                targetCameraZ = 30;
-
-            // 4. Aboutエリア
-            } else if (sY + winH * 0.5 > aboutTop) {
-                if(!isDarkMode) { isDarkMode = true; body.classList.add('theme-dark'); targetFogColor.setHex(0x080808); }
-                label.classList.remove('visible');
-                titleWorks.style.opacity = 0;
-                
-                introGroup.visible = false; aboutGroup.visible = true; worksGroup.visible = false;
-                aboutGroup.children.forEach(o => { o.material.opacity = 0.8; o.position.x += o.userData.speed; if(o.position.x < -40) o.position.x = 40; });
-                targetCameraZ = 30;
-
-            // 5. Introエリア
-            } else {
-                if(isDarkMode) { isDarkMode = false; body.classList.remove('theme-dark'); targetFogColor.setHex(0xf0f0f0); }
-                label.classList.remove('visible');
-                titleWorks.style.opacity = 0;
-                
-                introGroup.visible = true; aboutGroup.visible = false; worksGroup.visible = false;
-                introGroup.children.forEach(o => { o.position.y += Math.sin(Date.now()*0.002 + o.id)*0.01; });
-                targetCameraZ = 30; 
-            }
-
-            camera.position.z += (targetCameraZ - camera.position.z) * 0.05;
-
-            // Hover
-            if (worksGroup.visible) {
-                raycaster.setFromCamera(mouse, camera);
-                const hits = raycaster.intersectObjects(worksGroup.children, true);
-                hoveredObject = null;
-                if (hits.length > 0) {
-                    const target = hits[0].object.parent;
-                    if (target && target.userData.data) hoveredObject = target;
-                }
-                cards.forEach(group => {
-                    const targetScale = (group === hoveredObject) ? 1.1 : 1.0;
-                    group.scale.setScalar(THREE.MathUtils.lerp(group.scale.x, targetScale, 0.1));
-                    const targetColor = (group === hoveredObject) ? 0xffffff : 0x444444;
-                    group.children[1].material.color.lerp(new THREE.Color(targetColor), 0.1);
-                    group.visible = (group.position.z < camera.position.z + 20 && group.position.z > camera.position.z - 200);
-                });
-            }
-            scene.fog.color.lerp(targetFogColor, 0.05);
-            renderer.render(scene, camera);
-        }
-        animate();
-
-        window.addEventListener('mousemove', (e) => {
-            if (!worksGroup.visible) return;
-            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-        });
-
-        const modal = document.getElementById('project-modal');
-        window.addEventListener('click', (e) => {
-            if(modal.classList.contains('active') || !worksGroup.visible || !hoveredObject) return;
-            openModal(hoveredObject.userData.data);
-        });
-
-        function openModal(data) {
-            document.getElementById('m-title').textContent = data.title;
-            document.getElementById('m-desc').textContent = data.desc;
-            
-            const linkBtn = document.getElementById('m-link');
-            if (data.url && data.url !== "#") {
-                linkBtn.style.display = "inline-block";
-                linkBtn.href = data.url;
-            } else {
-                linkBtn.style.display = "none";
-            }
-
-            const v = document.getElementById('m-visual');
-            v.innerHTML = "";
-            if(data.image) v.innerHTML = `<img class="visual-content" src="${data.image}">`;
-            else v.innerHTML = `<div style="font-size:3rem; color:#fff;">IMG</div>`;
-            
-            modal.classList.add('active');
-        }
-        document.getElementById('close-btn').addEventListener('click', () => {
-            modal.classList.remove('active');
-            setTimeout(() => { document.getElementById('m-visual').innerHTML = ""; }, 500);
-        });
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
             renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 300);
+            camera.position.z = 30; 
+
+            // Texture Helper
+            function createHighQualityTextTexture(text, color, fontSize = 200) {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const width = 2048; const height = 512; 
+                canvas.width = width; canvas.height = height;
+                ctx.font = `900 ${fontSize}px 'Montserrat', 'Noto Sans JP', sans-serif`;
+                ctx.fillStyle = color;
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(text, width/2, height/2);
+                const texture = new THREE.CanvasTexture(canvas);
+                texture.needsUpdate = true;
+                texture.minFilter = THREE.LinearMipmapLinearFilter;
+                texture.magFilter = THREE.LinearFilter;
+                return texture;
+            }
+
+            // 1. Intro Objects (Keywords from JSON)
+            const introGroup = new THREE.Group(); scene.add(introGroup);
+            const wIntro = data.keywords.intro;
+            for(let i=0; i<40; i++){
+                const text = wIntro[i % wIntro.length];
+                const map = createHighQualityTextTexture(text, "#111", 100);
+                const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: map, transparent: true, opacity: 0.4 }));
+                sp.position.set((Math.random()-0.5)*50, (Math.random()-0.5)*40, (Math.random()-0.5)*20);
+                sp.scale.set(10, 2.5, 1); introGroup.add(sp);
+            }
+
+            // 2. About Objects (Keywords from JSON)
+            const aboutGroup = new THREE.Group(); scene.add(aboutGroup); aboutGroup.visible = false;
+            const wAbout = data.keywords.about;
+            for(let i=0; i<80; i++){
+                const text = wAbout[i % wAbout.length];
+                const map = createHighQualityTextTexture(text, "#fff", 100);
+                const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: map, transparent: true, opacity: 0.8 }));
+                sp.position.set((Math.random()-0.5)*80, (Math.random()-0.5)*40, (Math.random()-0.5)*20);
+                sp.scale.set(8, 2, 1); sp.userData = { speed: -(Math.random()*0.1 + 0.05) };
+                aboutGroup.add(sp);
+            }
+
+            // 3. Works Objects (From JSON)
+            const worksGroup = new THREE.Group(); scene.add(worksGroup); worksGroup.visible = false;
+            const totalCards = 40;  
+            const spreadX = 70; const spreadY = 50; const depthSpacing = 18;
+            const cards = [];
+            const loader = new THREE.TextureLoader();
+            const cardGeometry = new THREE.PlaneGeometry(14.0, 8.4);
+            const borderGeometry = new THREE.PlaneGeometry(14.3, 8.7);
+            const materialCache = {};
+
+            for(let i=0; i < totalCards; i++) {
+                const workData = data.works[i % data.works.length];
+                let mat;
+                if(workData.image && workData.image !== "") {
+                    if(!materialCache[workData.image]) {
+                        const tex = loader.load(workData.image);
+                        tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                        materialCache[workData.image] = new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide });
+                    }
+                    mat = materialCache[workData.image];
+                } else {
+                    if(!materialCache['default']) materialCache['default'] = new THREE.MeshBasicMaterial({ color: 0xeeeeee, side: THREE.DoubleSide });
+                    mat = materialCache['default'];
+                }
+                const mesh = new THREE.Mesh(cardGeometry, mat);
+                const border = new THREE.Mesh(borderGeometry, new THREE.MeshBasicMaterial({ color: 0x000, side: THREE.DoubleSide }));
+                border.position.z = -0.1; 
+                const group = new THREE.Group();
+                group.add(mesh); group.add(border);
+                group.userData = { data: workData, initialZ: -i * depthSpacing - Math.random() * 10 };
+                group.position.set((Math.random() - 0.5) * spreadX, (Math.random() - 0.5) * spreadY, group.userData.initialZ);
+                group.rotation.z = (Math.random() - 0.5) * 0.15;
+                group.rotation.y = (Math.random() - 0.5) * 0.2;
+                worksGroup.add(group);
+                cards.push(group);
+            }
+            const maxWorkDepth = totalCards * depthSpacing + 50;
+
+            // --- Animation Loop ---
+            const body = document.body;
+            let isDarkMode = false;
+            const targetFogColor = new THREE.Color(0xf0f0f0);
+            let targetCameraZ = camera.position.z;
+            let hoveredObject = null;
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2(9999, 9999);
+            const label = document.getElementById('section-label');
+            const titleWorks = document.getElementById('title-works');
+            const titleEnd = document.getElementById('title-end');
+
+            function animate() {
+                requestAnimationFrame(animate);
+
+                const sY = window.scrollY;
+                const winH = window.innerHeight;
+                const aboutTop = document.getElementById('sec-about').offsetTop;
+                const transTop = document.getElementById('sec-transition').offsetTop;
+                const worksTop = document.getElementById('works-section').offsetTop;
+                const worksH = document.getElementById('works-section').offsetHeight;
+                const endTop = document.getElementById('sec-end').offsetTop;
+
+                // 1. End
+                if (sY + winH * 0.9 > endTop) { 
+                    if(!isDarkMode) { isDarkMode = true; body.classList.add('theme-dark'); targetFogColor.setHex(0x000000); }
+                    label.classList.remove('visible');
+                    introGroup.visible = false; aboutGroup.visible = false; worksGroup.visible = true;
+                    titleWorks.style.display = 'none'; titleEnd.style.display = 'block';
+                    const endProgress = Math.min(1.0, Math.max(0, (sY - endTop + winH*0.5) / winH));
+                    titleEnd.style.opacity = endProgress; titleEnd.style.transform = `scale(1)`; 
+                    targetCameraZ = 30 - maxWorkDepth - 100;
+
+                // 2. Works
+                } else if (sY + winH * 0.5 > worksTop) {
+                    if(!isDarkMode) { isDarkMode = true; body.classList.add('theme-dark'); targetFogColor.setHex(0x080808); }
+                    introGroup.visible = false; aboutGroup.visible = false; worksGroup.visible = true; 
+                    titleWorks.style.display = 'block'; titleEnd.style.display = 'none';
+                    const worksScrollProgress = (sY - worksTop) / (worksH - winH);
+                    targetCameraZ = 30 - (worksScrollProgress * maxWorkDepth);
+
+                    if (worksScrollProgress < 0.2) {
+                        label.classList.remove('visible');
+                        const p = worksScrollProgress / 0.2; 
+                        let op = 0; let sc = 0.5;
+                        if(p < 0.5) { op = p * 2; sc = 0.5 + p; } else { op = 1.0 - (p - 0.5) * 2; sc = 1.0 + (p - 0.5) * 2; }
+                        titleWorks.style.opacity = op; titleWorks.style.transform = `scale(${sc})`;
+                    } else {
+                        label.classList.add('visible'); titleWorks.style.opacity = 0;
+                    }
+                
+                // 3. Transition
+                } else if (sY + winH * 0.5 > transTop) {
+                    if(!isDarkMode) { isDarkMode = true; body.classList.add('theme-dark'); targetFogColor.setHex(0x080808); }
+                    label.classList.remove('visible'); titleWorks.style.opacity = 0; titleEnd.style.opacity = 0;
+                    introGroup.visible = false; aboutGroup.visible = true; worksGroup.visible = false;
+                    const transProgress = (sY + winH*0.5 - transTop) / winH;
+                    const opacity = Math.max(0, 1.0 - transProgress * 1.5);
+                    aboutGroup.children.forEach(o => { o.material.opacity = opacity * 0.8; o.position.x += o.userData.speed; if(o.position.x < -40) o.position.x = 40; });
+                    targetCameraZ = 30;
+
+                // 4. About
+                } else if (sY + winH * 0.5 > aboutTop) {
+                    if(!isDarkMode) { isDarkMode = true; body.classList.add('theme-dark'); targetFogColor.setHex(0x080808); }
+                    label.classList.remove('visible'); titleWorks.style.opacity = 0;
+                    introGroup.visible = false; aboutGroup.visible = true; worksGroup.visible = false;
+                    aboutGroup.children.forEach(o => { o.material.opacity = 0.8; o.position.x += o.userData.speed; if(o.position.x < -40) o.position.x = 40; });
+                    targetCameraZ = 30;
+
+                // 5. Intro
+                } else {
+                    if(isDarkMode) { isDarkMode = false; body.classList.remove('theme-dark'); targetFogColor.setHex(0xf0f0f0); }
+                    label.classList.remove('visible'); titleWorks.style.opacity = 0;
+                    introGroup.visible = true; aboutGroup.visible = false; worksGroup.visible = false;
+                    introGroup.children.forEach(o => { o.position.y += Math.sin(Date.now()*0.002 + o.id)*0.01; });
+                    targetCameraZ = 30; 
+                }
+
+                camera.position.z += (targetCameraZ - camera.position.z) * 0.05;
+
+                // Hover
+                if (worksGroup.visible) {
+                    raycaster.setFromCamera(mouse, camera);
+                    const hits = raycaster.intersectObjects(worksGroup.children, true);
+                    hoveredObject = null;
+                    if (hits.length > 0) {
+                        const target = hits[0].object.parent;
+                        if (target && target.userData.data) hoveredObject = target;
+                    }
+                    cards.forEach(group => {
+                        const targetScale = (group === hoveredObject) ? 1.1 : 1.0;
+                        group.scale.setScalar(THREE.MathUtils.lerp(group.scale.x, targetScale, 0.1));
+                        const targetColor = (group === hoveredObject) ? 0xffffff : 0x444444;
+                        group.children[1].material.color.lerp(new THREE.Color(targetColor), 0.1);
+                        group.visible = (group.position.z < camera.position.z + 20 && group.position.z > camera.position.z - 200);
+                    });
+                }
+                scene.fog.color.lerp(targetFogColor, 0.05);
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            // Interactions
+            window.addEventListener('mousemove', (e) => {
+                if (!worksGroup.visible) return;
+                mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            });
+
+            const modal = document.getElementById('project-modal');
+            window.addEventListener('click', (e) => {
+                if(modal.classList.contains('active') || !worksGroup.visible || !hoveredObject) return;
+                openModal(hoveredObject.userData.data);
+            });
+
+            function openModal(data) {
+                document.getElementById('m-title').textContent = data.title;
+                document.getElementById('m-desc').textContent = data.desc;
+                
+                // データにdate/teamがあれば表示、なければ空
+                const dateText = data.date || "";
+                const teamText = data.team || "";
+                document.getElementById('m-date').textContent = dateText;
+                document.getElementById('m-team').textContent = teamText;
+
+                // リンクボタン制御
+                const linkBtn = document.getElementById('m-link');
+                if (data.url && data.url !== "#") {
+                    linkBtn.style.display = "inline-block";
+                    linkBtn.href = data.url;
+                } else {
+                    linkBtn.style.display = "none";
+                }
+
+                const v = document.getElementById('m-visual');
+                v.innerHTML = "";
+                if(data.image) v.innerHTML = `<img class="visual-content" src="${data.image}">`;
+                else v.innerHTML = `<div style="font-size:3rem; color:#fff;">IMG</div>`;
+                modal.classList.add('active');
+            }
+            document.getElementById('close-btn').addEventListener('click', () => {
+                modal.classList.remove('active');
+                setTimeout(() => { document.getElementById('m-visual').innerHTML = ""; }, 500);
+            });
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
     </script>
 </body>
 </html>
