@@ -16,32 +16,42 @@
         {
             "title": "ガジェットブログ「Tekunotes」",
             "url": "https://tekunotes.com",
-            "image": "https://tekunotes.com/wp-content/uploads/2024/03/TEKUNOTES%E3%82%A2%E3%82%A4%E3%82%AD%E3%83%A3%E3%83%83%E3%83%81%E7%94%BB%E5%83%8F_%E3%82%A2%E3%83%BC%E3%83%88%E3%83%9C%E3%83%BC%E3%83%89-1-scaled.jpg",
-            "desc": "学生を中心に動くウェブメディア。企業提供記事も執筆。"
+            "image": "https://tekunotes.com/wp-content/uploads/2024/03/TEKUNOTES%E3%82%A2%E3%82%A4%E3%82%AD%E3%83%A3%E3%83%83%E3%83%83%E3%83%81%E7%94%BB%E5%83%8F_%E3%82%A2%E3%83%BC%E3%83%88%E3%83%9C%E3%83%BC%E3%83%89-1-scaled.jpg",
+            "desc": "学生を中心に動くウェブメディア。企業提供記事も執筆。",
+            "date": "2020 - Present",
+            "team": "Editor in Chief"
         },
         {
             "title": "Esports Club Founder",
             "url": "https://www.instagram.com/esports_thu/",
             "image": "https://scontent-nrt6-1.cdninstagram.com/v/t51.2885-19/497670117_17843455017488460_7820237402172182528_n.jpg?efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=scontent-nrt6-1.cdninstagram.com&_nc_cat=100&_nc_oc=Q6cZ2QGbMsNXsC2E2u3eKG1x7X0ksjddQQnDkIb0wYo2YrJr8pk3Cpd3MOEd4tvvqhzVMOs&_nc_ohc=uhYd7mu1eGcQ7kNvwE4ZnON&_nc_gid=RYDrBHXxKQYIeGZFf63yPg&edm=AP4sbd4BAAAA&ccb=7-5&oh=00_AfoHDrVpxrrGQ6Cs5oPdU9logbU6Njv3RWNt3V7w2MRa5Q&oe=697524A6&_nc_sid=7a9f4b",
-            "desc": "部長としてチームを牽引。0から組織を作り上げる経験。"
+            "desc": "部長としてチームを牽引。0から組織を作り上げる経験。",
+            "date": "2022 - 2024",
+            "team": "Founder / Leader"
         },
         {
             "title": "ドキュメンタリー第一弾",
             "url": "https://youtu.be/Gy1To4-SBh0?si=X_ZmeE2GHY8dUzDt",
             "image": "images/doc_01.jpeg",
-            "desc": "同年代のダンサーの方にインタビューをし、コンパクトにまとめた作品"
+            "desc": "同年代のダンサーの方にインタビューをし、コンパクトにまとめた作品",
+            "date": "2024.03",
+            "team": "Director / Editor"
         },
         {
             "title": "詐欺鼠",
             "url": "#",
             "image": "",
-            "desc": "自分をポスターにするならという授業内で制作した作品。"
+            "desc": "自分をポスターにするならという授業内で制作した作品。",
+            "date": "2023.11",
+            "team": "Solo Design"
         },
         {
             "title": "ワープ",
             "url": "#",
             "image": "",
-            "desc": "１分間で10カットを盛り込むために制作した作品。。"
+            "desc": "１分間で10カットを盛り込むために制作した作品。。",
+            "date": "2024.01",
+            "team": "Video Work"
         }
     ]
 }
