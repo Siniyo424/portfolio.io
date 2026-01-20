@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Immersive Portfolio Final v6</title>
+    <title>Immersive Portfolio Final v7</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -72,23 +72,22 @@
         .modal-card { width: 85%; max-width: 1200px; height: 80vh; background: #fff; color: #111; border-radius: 30px; box-shadow: 0 50px 100px -20px rgba(0,0,0,0.8); display: grid; grid-template-columns: 1.3fr 1fr; overflow: hidden; transform: scale(0.95) translateY(30px); transition: 0.5s; }
         #project-modal.active .modal-card { transform: scale(1) translateY(0); }
         
-        /* 画像表示エリア */
         .modal-visual { background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; width: 100%; height: 100%; }
         
-        /* 通常（指定あり）: 枠いっぱいに広げる（見切れあり） */
+        /* 画像スタイル */
         img.visual-content { 
             width: 100%; height: 100%; 
-            object-fit: cover; 
+            object-fit: cover; /* 基本は埋める */
             display: block; 
+            transition: opacity 0.3s;
         }
         
-        /* ★重要: 自動調整（指定なし）: 全体を表示する（見切れなし・黒帯あり） */
+        /* 自動調整用クラス（見切れ防止） */
         img.visual-content.auto-fit { 
             object-fit: contain !important; /* 強制的に全体表示 */
             background-color: #000; 
         }
         
-        /* YouTubeなどのiframe用 */
         iframe.visual-content { width: 100%; height: 100%; border: none; }
 
         .modal-info { padding: 50px; display: flex; flex-direction: column; overflow-y: auto; }
@@ -404,19 +403,28 @@
                 const v = document.getElementById('m-visual');
                 v.innerHTML = "";
                 
-                // ★修正ロジック: 画像表示の自動調整
                 const imgElement = document.createElement('img');
                 
+                // ★エラーハンドリング: 画像読み込み失敗時にサムネイルへフォールバック
+                imgElement.onerror = function() {
+                    // 専用画像が失敗したら、サムネイルを試す
+                    if (this.src !== data.image && data.image) {
+                        this.src = data.image;
+                        this.className = "visual-content auto-fit"; // 強制的に全体表示
+                    } else {
+                        // どちらもダメなら文字
+                        v.innerHTML = `<div style="font-size:3rem; color:#fff;">NO IMG</div>`;
+                    }
+                };
+
+                // 表示ロジック
                 if (data.modalImage && data.modalImage !== "") {
-                    // 1. 専用画像がある場合 -> デフォルト(cover)
                     imgElement.src = data.modalImage;
-                    imgElement.className = "visual-content"; 
+                    imgElement.className = "visual-content"; // デフォルト（カバー）
                 } else if (data.image) {
-                    // 2. 専用画像がない場合 -> 既存画像を使用し、"auto-fit"クラス(contain)を付与
                     imgElement.src = data.image;
-                    imgElement.className = "visual-content auto-fit"; 
+                    imgElement.className = "visual-content auto-fit"; // 自動調整（全体表示）
                 } else {
-                    // 3. 画像なし
                     v.innerHTML = `<div style="font-size:3rem; color:#fff;">IMG</div>`;
                     modal.classList.add('active');
                     return;
