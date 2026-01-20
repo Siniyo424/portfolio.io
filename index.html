@@ -91,6 +91,7 @@
         // --- 0. JSONデータの読み込みと初期化 ---
         async function init() {
             try {
+                // fetchでjsonデータを取得
                 const response = await fetch('data.json');
                 if (!response.ok) throw new Error('Network response was not ok');
                 const data = await response.json();
@@ -105,8 +106,8 @@
                 console.error('Error loading data.json:', error);
                 document.getElementById('intro-content').innerHTML = `
                     <h1>Error Loading Data</h1>
-                    <p>ローカル環境で実行している場合、ブラウザのセキュリティ制限によりjsonが読み込めないことがあります。<br>
-                    GitHubにアップロードするか、ローカルサーバー(Live Server等)を使用してください。</p>`;
+                    <p style="font-size:0.9rem">ローカル環境で直接ファイルを開いているため、セキュリティ制限によりjsonが読み込めません。<br>
+                    GitHubにアップロードするか、VS Codeの「Live Server」機能を使用してください。</p>`;
             }
         }
 
@@ -132,26 +133,17 @@
             // Worksデータ保持
             worksData = data.works;
 
-            // マーカー監視を再開（要素が書き換わったため）
-            observeMarkers();
-        }
-
-
-        // --- 1. マーカー制御 ---
-        function observeMarkers() {
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) entry.target.classList.add('active');
-                    else entry.target.classList.remove('active');
-                });
-            }, { threshold: 0.5, rootMargin: "-10% 0px -10% 0px" });
-            
-            // 少し待ってから監視開始（DOM描画待ち）
+            // マーカー監視を再開
             setTimeout(() => {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) entry.target.classList.add('active');
+                        else entry.target.classList.remove('active');
+                    });
+                }, { threshold: 0.5, rootMargin: "-10% 0px -10% 0px" });
                 document.querySelectorAll('.marker').forEach(el => observer.observe(el));
             }, 100);
         }
-
 
         // --- 2. Three.js セットアップ ---
         const container = document.getElementById('webgl-container');
@@ -180,7 +172,7 @@
 
         // --- 3. 3Dオブジェクト生成 ---
         function create3DObjects(data) {
-            // Group 1: Intro (黒ワイヤー & キーワード)
+            // Group 1: Intro
             introGroup = new THREE.Group(); scene.add(introGroup);
             const wIntro = data.keywords.intro;
             const matWireBlack = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.2 });
@@ -199,7 +191,7 @@
                 }
             }
 
-            // Group 2: About (白データ)
+            // Group 2: About
             aboutGroup = new THREE.Group(); scene.add(aboutGroup); aboutGroup.visible = false;
             const wAbout = data.keywords.about;
             for(let i=0; i<100; i++){
@@ -209,7 +201,7 @@
                 sp.scale.set(6, 1.5, 1); sp.userData = { speedX: -(Math.random()*0.1 + 0.05) }; aboutGroup.add(sp);
             }
 
-            // Group 3: Works (螺旋階段)
+            // Group 3: Works
             carousel = new THREE.Group(); scene.add(carousel);
             const loader = new THREE.TextureLoader();
             const radius = 9.0; 
@@ -218,36 +210,24 @@
 
             worksData.forEach((work, i) => {
                 const angle = (i / worksData.length) * Math.PI * 2;
-                
-                // 枠線
                 const border = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 2.6), new THREE.MeshBasicMaterial({ color: 0x000000 }));
                 
-                // カード本体
                 let mat;
                 if (work.image && work.image !== "") {
                     const tex = loader.load(work.image);
                     mat = new THREE.MeshBasicMaterial({ map: tex, color: 0xffffff });
                 } else {
-                    // 画像がない場合はタイトル文字を描画
                     const canvas = document.createElement('canvas');
                     canvas.width = 512; canvas.height = 300;
                     const ctx = canvas.getContext('2d');
                     ctx.fillStyle = "#f8f8f8"; ctx.fillRect(0,0,512,300);
-                    
-                    // タイトル
-                    ctx.fillStyle = "#111"; ctx.font = "bold 40px Arial"; 
-                    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                    ctx.fillStyle = "#111"; ctx.font = "bold 40px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
                     ctx.fillText(work.title, 256, 120);
-                    
-                    // 説明文（簡易）
                     if(work.desc) {
                         ctx.font = "20px Arial"; ctx.fillStyle = "#555";
-                        // 長い説明はカットするか改行が必要だが、ここでは簡易的に1行
                         ctx.fillText(work.desc.substring(0, 30) + "...", 256, 180);
                     }
-                    
-                    const tex = new THREE.CanvasTexture(canvas);
-                    mat = new THREE.MeshBasicMaterial({ map: tex });
+                    mat = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(canvas) });
                 }
 
                 const card = new THREE.Mesh(new THREE.PlaneGeometry(4.0, 2.4), mat);
@@ -260,21 +240,15 @@
                 g.position.z = Math.sin(angle) * radius;
                 g.position.y = i * yStep - (totalHelixHeight / 2);
                 
-                g.lookAt(0, g.position.y, 0); 
-                g.rotateY(Math.PI);
+                g.lookAt(0, g.position.y, 0); g.rotateY(Math.PI);
 
-                g.userData = { 
-                    url: work.url, 
-                    title: work.title
-                };
-                
+                g.userData = { url: work.url, title: work.title };
                 carousel.add(g);
             });
 
             carousel.position.y = -totalHelixHeight * 3;
             carousel.rotation.x = 0.1;
         }
-
 
         // --- 4. スクロール制御 ---
         const body = document.body;
@@ -286,8 +260,8 @@
         function lerp(start, end, factor) { return (1 - factor) * start + factor * end; }
 
         function updateScroll() {
-            // ロード完了前はスキップ
-            if(!introGroup || !carousel) return;
+            // ロードが完了していない場合は何もしない
+            if(!carousel) return;
 
             const center = window.innerHeight / 2;
             const aboutRect = secAbout.getBoundingClientRect();
@@ -307,7 +281,6 @@
             }
             if (!isDarkMode) introGroup.visible = (worksRect.top > center);
 
-            // Works螺旋
             const scrollY = window.scrollY;
             const windowH = window.innerHeight;
             const worksTop = secWorks.offsetTop;
@@ -315,7 +288,7 @@
 
             const startScroll = worksTop - windowH * 0.2; 
             const endScroll = worksTop + worksHeight - windowH * 0.8;
-            const totalHelixHeight = (worksData.length - 1) * 4.0; // yStep=4.0
+            const totalHelixHeight = (worksData.length - 1) * 4.0;
 
             let targetY = carousel.position.y;
             let targetRotY = carousel.rotation.y;
@@ -323,10 +296,8 @@
             if (scrollY > startScroll && scrollY < endScroll) {
                 const progress = (scrollY - startScroll) / (endScroll - startScroll);
                 const rawIndex = progress * (worksData.length - 1);
-                const snappedIndex = rawIndex;
-                
-                targetY = -(snappedIndex * 4.0 - (totalHelixHeight / 2));
-                targetRotY = -(snappedIndex / worksData.length) * Math.PI * 2;
+                targetY = -(rawIndex * 4.0 - (totalHelixHeight / 2));
+                targetRotY = -(rawIndex / worksData.length) * Math.PI * 2;
             } else if (scrollY <= startScroll) {
                 targetY = -totalHelixHeight * 3; targetRotY = 0;
             } else {
@@ -335,7 +306,6 @@
 
             carousel.position.y = lerp(carousel.position.y, targetY, 0.08);
             carousel.rotation.y = lerp(carousel.rotation.y, targetRotY, 0.08);
-
             scene.fog.color.lerp(targetFogColor, 0.05);
         }
 
@@ -350,7 +320,9 @@
         });
 
         function checkIntersection() {
+            // ロード完了前はスキップ
             if(!carousel) return;
+
             raycaster.setFromCamera(mouse, camera);
             const hits = raycaster.intersectObjects(carousel.children, true);
             
@@ -373,7 +345,9 @@
         }
 
         window.addEventListener('click', e => {
+            // ロード完了前はスキップ
             if(!carousel) return;
+
             mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
             raycaster.setFromCamera(mouse, camera);
@@ -396,6 +370,12 @@
         });
 
         // --- 6. アニメーション ---
+        let mouseX=0, mouseY=0;
+        window.addEventListener('mousemove', e=>{
+            mouseX=(e.clientX/window.innerWidth-0.5)*2;
+            mouseY=(e.clientY/window.innerHeight-0.5)*2;
+        });
+
         function animate() {
             requestAnimationFrame(animate);
             updateScroll();
@@ -413,6 +393,10 @@
                 });
             }
             
+            camera.position.x += (mouseX*0.5 - camera.position.x)*0.05;
+            camera.position.y += (-mouseY*0.5 - camera.position.y)*0.05;
+            camera.lookAt(0,0,0);
+
             renderer.render(scene, camera);
         }
         
