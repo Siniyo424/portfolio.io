@@ -1,7 +1,7 @@
 {
     "profile": {
-        "name": "福留 陽仁",
-        "subtitle": "Born in 2005 / Male",
+        "name": "SINIYO / TEKUNOTES",
+        "subtitle": "University Student / Blogger",
         "catchphrase": "いつもギリギリで\n生きていたい。"
     },
     "about": {
@@ -17,31 +17,31 @@
             "title": "ガジェットブログ「Tekunotes」",
             "url": "https://tekunotes.com",
             "image": "",
-            "desc": "学生を中心に動くウェブメディア。JapanNext様など企業提供の記事も執筆。"
+            "desc": "学生を中心に動くウェブメディア。企業提供記事も執筆。"
         },
         {
-            "title": "Esports Club",
+            "title": "Esports Club Founder",
             "url": "#",
             "image": "",
             "desc": "部長としてチームを牽引。0から組織を作り上げる経験。"
         },
         {
-            "title": "Personal Creation",
+            "title": "Frontier Project",
+            "url": "#",
+            "image": "",
+            "desc": "音楽フェス企画・運営。新しい文化の創造。"
+        },
+        {
+            "title": "Graphic Design",
             "url": "#",
             "image": "",
             "desc": "個人制作物アーカイブ。デザインと実装の実験場。"
         },
         {
-            "title": "Project X",
+            "title": "Cafe Log",
             "url": "#",
             "image": "",
-            "desc": "Coming Soon..."
-        },
-        {
-            "title": "Project Y",
-            "url": "#",
-            "image": "",
-            "desc": "Coming Soon..."
+            "desc": "趣味のカフェ巡り記録。"
         }
     ]
 }
