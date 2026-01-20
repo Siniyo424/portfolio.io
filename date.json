@@ -1,0 +1,47 @@
+{
+    "profile": {
+        "name": "福留 陽仁",
+        "subtitle": "Born in 2005 / Male",
+        "catchphrase": "いつもギリギリで\n生きていたい。"
+    },
+    "about": {
+        "title": "Co-Creation.",
+        "text": "自分だけで物事は進まないからこそ、人と何かを成し遂げたい。\n\n今までブログ運営、部活動の部長、個人の制作物...\n色々なことにチャレンジしてきましたが、\nどれも誰かと手を取り合って作った\n一つの結晶だと感じています。"
+    },
+    "keywords": {
+        "intro": ["Challenge", "2005", "Teamwork", "Leader", "Create", "Web"],
+        "about": ["Tekunotes", "Esports", "Gadget", "Connect", "Crystal", "Future"]
+    },
+    "works": [
+        {
+            "title": "ガジェットブログ「Tekunotes」",
+            "url": "https://tekunotes.com",
+            "image": "",
+            "desc": "学生を中心に動くウェブメディア。JapanNext様など企業提供の記事も執筆。"
+        },
+        {
+            "title": "Esports Club",
+            "url": "#",
+            "image": "",
+            "desc": "部長としてチームを牽引。0から組織を作り上げる経験。"
+        },
+        {
+            "title": "Personal Creation",
+            "url": "#",
+            "image": "",
+            "desc": "個人制作物アーカイブ。デザインと実装の実験場。"
+        },
+        {
+            "title": "Project X",
+            "url": "#",
+            "image": "",
+            "desc": "Coming Soon..."
+        },
+        {
+            "title": "Project Y",
+            "url": "#",
+            "image": "",
+            "desc": "Coming Soon..."
+        }
+    ]
+}
